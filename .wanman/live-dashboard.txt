@@ -1,0 +1,31 @@
+
+────────────────────────────────────────────────────────────────────────────────
+  wanman run — takeover: h-29711-rapid-agent
+  ⏱ 10m11s │ Loop 1/1
+────────────────────────────────────────────────────────────────────────────────
+  Agents
+    ● ceo          running
+    ○ cto          idle
+    ○ dev          idle
+    ○ devops       idle
+    ○ feedback     idle
+    ○ marketing    idle
+    ○ warden       idle
+
+  Tasks
+    (no tasks yet)
+
+  Logs
+    05:12:01 supervisor     rpc
+    05:12:01 supervisor     rpc
+    05:12:01 supervisor     rpc
+    05:12:02 supervisor     rpc
+    05:12:02 supervisor     rpc
+    05:12:12 agent-process  assistant_text (ceo)
+    05:12:12 agent-process  tool_call (ceo, tool:Glob)
+    05:12:12 agent-process  tool_call (ceo, tool:Read)
+    05:12:13 agent-process  tool_result (ceo)
+    05:12:13 agent-process  tool_result (ceo)
+
+────────────────────────────────────────────────────────────────────────────────
+  Ctrl+C to stop

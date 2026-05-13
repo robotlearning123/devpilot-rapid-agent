@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec "/home/robot/.nvm/versions/node/v22.22.0/bin/node" "/home/robot/workspace/35-wanman/packages/cli/dist/index.js" "$@"
