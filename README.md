@@ -9,8 +9,6 @@ Built for the [Google Cloud Rapid Agent Hackathon](https://rapid-agent.devpost.c
 ## Architecture
 
 ```
-[ARCHITECTURE DIAGRAM PLACEHOLDER]
-
 ┌─────────────────────────────────────────────────────────┐
 │                    User Interface                        │
 │              (CLI / Google Cloud Console)                │
@@ -19,8 +17,8 @@ Built for the [Google Cloud Rapid Agent Hackathon](https://rapid-agent.devpost.c
 ┌──────────────────────▼──────────────────────────────────┐
 │              Google Cloud Agent Builder                  │
 │  ┌─────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │   Gemini 3   │  │  Reasoning   │  │   Planner     │  │
-│  │  (LLM core)  │  │   Engine     │  │  (multi-step) │  │
+│  │  Gemini 1.5  │  │  Reasoning   │  │   Planner     │  │
+│  │  Flash (LLM) │  │   Engine     │  │  (multi-step) │  │
 │  └──────┬───────┘  └──────┬───────┘  └───────┬───────┘  │
 │         └─────────────────┼──────────────────┘          │
 │                           │                              │
@@ -44,7 +42,7 @@ Built for the [Google Cloud Rapid Agent Hackathon](https://rapid-agent.devpost.c
 
 | Component | Role |
 |-----------|------|
-| **Gemini 3** | LLM core — natural language understanding, reasoning, code review |
+| **Gemini 1.5 Flash** | LLM core — natural language understanding, reasoning, code review |
 | **Agent Builder** | Google Cloud orchestration — agent lifecycle, tool routing, state |
 | **Planner** | Decomposes complex goals into ordered tool-call sequences |
 | **Tool Orchestrator** | Invokes MCP tools, handles retries, enforces guardrails |
@@ -56,7 +54,7 @@ Built for the [Google Cloud Rapid Agent Hackathon](https://rapid-agent.devpost.c
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - Google Cloud account with Agent Builder API enabled
 - GitLab account with personal access token (scopes: `api`, `read_repository`)
 - Google Cloud CLI (`gcloud`) installed and authenticated
