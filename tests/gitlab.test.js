@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 // MR review client (from PR #6)
 import { createGitLabClient } from '../src/gitlab/client.js';
