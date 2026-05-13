@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, vi, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 // MR review client (from PR #6)
 import { createGitLabClient } from '../src/gitlab/client.js';
@@ -193,6 +193,34 @@ describe('fetchIssues', () => {
       () => fetchIssues(baseConfig, {}, simpleMockFetch({ message: 'Unauthorized' }, 401)),
       /GitLab API 401/
     );
+  });
+
+  it('throws on request timeout (AbortError)', async () => {
+    const abortFetch = async () => {
+      const err = new Error('Aborted');
+      err.name = 'AbortError';
+      throw err;
+    };
+    await assert.rejects(
+      () => fetchIssues(baseConfig, {}, abortFetch),
+      /timed out after 10000ms/
+    );
+  });
+
+  it('throws timeout when fetch exceeds the deadline', async () => {
+    vi.useFakeTimers();
+    const timeoutFetch = async (_url, opts) =>
+      new Promise((_, reject) => {
+        opts.signal.addEventListener('abort', () => {
+          const err = new Error('The operation was aborted');
+          err.name = 'AbortError';
+          reject(err);
+        });
+      });
+    const promise = fetchIssues(baseConfig, {}, timeoutFetch);
+    vi.advanceTimersByTime(10_001);
+    await assert.rejects(() => promise, /timed out after 10000ms/);
+    vi.useRealTimers();
   });
 });
 
