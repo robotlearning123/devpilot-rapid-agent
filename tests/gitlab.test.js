@@ -115,6 +115,13 @@ describe('fetchIssues', () => {
     );
   });
 
+  it('throws when GITLAB_URL is missing', async () => {
+    await assert.rejects(
+      () => fetchIssues({ ...baseConfig, GITLAB_URL: '' }, {}, simpleMockFetch([])),
+      /GITLAB_URL is required/
+    );
+  });
+
   it('throws on non-OK HTTP response', async () => {
     await assert.rejects(
       () => fetchIssues(baseConfig, {}, simpleMockFetch({ message: 'Unauthorized' }, 401)),

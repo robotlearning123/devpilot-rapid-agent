@@ -4,6 +4,7 @@
  */
 
 const GITLAB_API_VERSION = 'v4';
+const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
 
 function buildBaseUrl(gitlabUrl) {
   return `${gitlabUrl.replace(/\/+$/, '')}/api/${GITLAB_API_VERSION}`;
@@ -18,6 +19,9 @@ function buildBaseUrl(gitlabUrl) {
  */
 export async function fetchIssues(config, params = {}, fetchFn = fetch) {
   const { GITLAB_URL, GITLAB_TOKEN, GITLAB_PROJECT_ID } = config;
+  if (!GITLAB_URL) {
+    throw new Error('GITLAB_URL is required for issue triage');
+  }
   if (!GITLAB_TOKEN || !GITLAB_PROJECT_ID) {
     throw new Error('GITLAB_TOKEN and GITLAB_PROJECT_ID are required for issue triage');
   }
@@ -26,13 +30,26 @@ export async function fetchIssues(config, params = {}, fetchFn = fetch) {
   const query = new URLSearchParams({ per_page: '20', ...params });
   const url = `${base}/projects/${encodeURIComponent(GITLAB_PROJECT_ID)}/issues?${query}`;
 
-  const resp = await fetchFn(url, {
-    headers: { 'PRIVATE-TOKEN': GITLAB_TOKEN },
-  });
-  if (!resp.ok) {
-    throw new Error(`GitLab API ${resp.status}: ${resp.statusText}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DEFAULT_FETCH_TIMEOUT_MS);
+
+  try {
+    const resp = await fetchFn(url, {
+      headers: { 'PRIVATE-TOKEN': GITLAB_TOKEN },
+      signal: controller.signal,
+    });
+    if (!resp.ok) {
+      throw new Error(`GitLab API ${resp.status}: ${resp.statusText}`);
+    }
+    return resp.json();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error(`GitLab API request timed out after ${DEFAULT_FETCH_TIMEOUT_MS}ms`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
   }
-  return resp.json();
 }
 
 /**
