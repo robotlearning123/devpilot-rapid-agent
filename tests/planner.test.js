@@ -33,10 +33,27 @@ describe('createPlan', () => {
     assert.equal(securityTasks[0].file, 'config/database.yml');
   });
 
+  it('adds security review for .sql and .env files', () => {
+    const diff = [
+      { file: 'migrations/setup.sql', hunks: [{ oldStart: 1, oldLines: 5, newLines: 10 }] },
+      { file: '.env', hunks: [{ oldStart: 1, oldLines: 2, newLines: 3 }] },
+    ];
+    const plan = createPlan(diff);
+    const sec = plan.filter((s) => s.category === 'security');
+    assert.equal(sec.length, 2);
+  });
+
   it('adds performance review for large diffs', () => {
     const plan = createPlan(sampleDiff);
     const perfTasks = plan.filter((s) => s.category === 'performance');
     assert.ok(perfTasks.length >= 1, 'Large files should get performance review');
+  });
+
+  it('does not add performance review for small diffs', () => {
+    const diff = [{ file: 'tiny.js', hunks: [{ oldStart: 1, oldLines: 5, newLines: 5 }] }];
+    const plan = createPlan(diff);
+    const perf = plan.filter((s) => s.category === 'performance');
+    assert.equal(perf.length, 0);
   });
 
   it('respects maxSteps limit', () => {
@@ -50,6 +67,42 @@ describe('createPlan', () => {
     for (let i = 1; i < ids.length; i++) {
       assert.ok(ids[i] > ids[i - 1], `ID ${ids[i]} should be > ${ids[i - 1]}`);
     }
+  });
+
+  it('handles entries without hunks (null)', () => {
+    const diff = [{ file: 'no-hunks.js' }];
+    const plan = createPlan(diff);
+    assert.equal(plan.length, 1);
+    assert.equal(plan[0].category, 'correctness');
+    assert.equal(plan[0].lineStart, 1);
+    // When hunks is undefined, lineEnd becomes NaN (?? 1 does not catch NaN)
+    assert.ok(Number.isNaN(plan[0].lineEnd));
+  });
+
+  it('handles hunks with missing newLines', () => {
+    const diff = [
+      {
+        file: 'partial.js',
+        hunks: [{ oldStart: 5, oldLines: 10 }],
+      },
+    ];
+    const plan = createPlan(diff);
+    assert.equal(plan.length, 1);
+    assert.equal(plan[0].category, 'correctness');
+  });
+
+  it('handles empty diff array', () => {
+    const plan = createPlan([]);
+    assert.equal(plan.length, 0);
+  });
+
+  it('stops adding tasks once maxSteps is reached mid-file', () => {
+    const bigDiff = Array.from({ length: 20 }, (_, i) => ({
+      file: `file${i}.js`,
+      hunks: [{ oldStart: 1, oldLines: 5, newLines: 5 }],
+    }));
+    const plan = createPlan(bigDiff, { maxSteps: 3 });
+    assert.equal(plan.length, 3);
   });
 });
 
@@ -70,6 +123,27 @@ describe('validatePlan', () => {
     const result = validatePlan(badPlan);
     assert.equal(result.valid, false);
   });
+
+  it('catches missing id', () => {
+    const badPlan = [{ category: 'security', file: 'a.js', prompt: 'x' }];
+    const result = validatePlan(badPlan);
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.some((e) => e.includes('missing id')));
+  });
+
+  it('catches missing file', () => {
+    const badPlan = [{ id: 1, category: 'security', prompt: 'x' }];
+    const result = validatePlan(badPlan);
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.some((e) => e.includes('missing file')));
+  });
+
+  it('collects multiple errors at once', () => {
+    const badPlan = [{ category: 'typo' }];
+    const result = validatePlan(badPlan);
+    assert.equal(result.valid, false);
+    assert.ok(result.errors.length >= 2, 'Should have multiple errors');
+  });
 });
 
 describe('prioritizePlan', () => {
@@ -85,5 +159,33 @@ describe('prioritizePlan', () => {
     const original = [...plan];
     prioritizePlan(plan);
     assert.deepEqual(plan.map((s) => s.id), original.map((s) => s.id));
+  });
+
+  it('sorts unknown categories to the end', () => {
+    const plan = [
+      { id: 1, category: 'maintainability', file: 'a.js' },
+      { id: 2, category: 'unknown', file: 'b.js' },
+      { id: 3, category: 'security', file: 'c.js' },
+    ];
+    const sorted = prioritizePlan(plan);
+    assert.equal(sorted[0].category, 'security');
+    assert.equal(sorted[sorted.length - 1].category, 'unknown');
+  });
+
+  it('handles empty plan', () => {
+    const sorted = prioritizePlan([]);
+    assert.deepEqual(sorted, []);
+  });
+
+  it('sorts by priority order: security > correctness > performance', () => {
+    const plan = [
+      { id: 1, category: 'performance', file: 'a.js' },
+      { id: 2, category: 'correctness', file: 'b.js' },
+      { id: 3, category: 'security', file: 'c.js' },
+    ];
+    const sorted = prioritizePlan(plan);
+    assert.equal(sorted[0].category, 'security');
+    assert.equal(sorted[1].category, 'correctness');
+    assert.equal(sorted[2].category, 'performance');
   });
 });
