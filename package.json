@@ -1,1 +1,14 @@
-{"name": "wanman-h-29711", "version": "0.0.1", "scripts": {"test": "echo no tests yet"}}
+{
+  "name": "devpilot-rapid-agent",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "Apache-2.0"
+}
