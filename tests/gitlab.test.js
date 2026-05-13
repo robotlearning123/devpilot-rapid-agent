@@ -351,7 +351,7 @@ describe('gitlabTriageHandler', () => {
   it('throws on unknown operation', async () => {
     await assert.rejects(
       () => gitlabTriageHandler({ type: 'gitlab-triage', payload: { operation: 'delete' } }, ctx),
-      /Unknown gitlab-triage operation/
+      /must be one of/,
     );
   });
 

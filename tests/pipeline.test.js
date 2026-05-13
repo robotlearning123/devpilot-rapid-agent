@@ -15,7 +15,7 @@ describe('Pipeline', () => {
     pipeline.use((task) => task.type === 'skip' ? { ok: true } : null);
     await assert.rejects(
       () => pipeline.process({ type: 'unknown' }, {}),
-      /No handler matched/
+      /No handler matched/,
     );
   });
 
@@ -40,5 +40,50 @@ describe('Pipeline', () => {
     pipeline.use(() => null);
     pipeline.use(() => null);
     assert.equal(pipeline.length, 2);
+  });
+
+  it('throws when task is null', async () => {
+    const pipeline = new Pipeline();
+    pipeline.use(() => ({ ok: true }));
+    await assert.rejects(
+      () => pipeline.process(null, {}),
+      /Task must be a non-null object/,
+    );
+  });
+
+  it('throws when task is a string', async () => {
+    const pipeline = new Pipeline();
+    pipeline.use(() => ({ ok: true }));
+    await assert.rejects(
+      () => pipeline.process('not-an-object', {}),
+      /Task must be a non-null object/,
+    );
+  });
+
+  it('throws when task has no type field', async () => {
+    const pipeline = new Pipeline();
+    pipeline.use(() => ({ ok: true }));
+    await assert.rejects(
+      () => pipeline.process({ name: 'no-type' }, {}),
+      /Task must have a non-empty string "type" field/,
+    );
+  });
+
+  it('throws when task type is empty string', async () => {
+    const pipeline = new Pipeline();
+    pipeline.use(() => ({ ok: true }));
+    await assert.rejects(
+      () => pipeline.process({ type: '' }, {}),
+      /Task must have a non-empty string "type" field/,
+    );
+  });
+
+  it('throws when task type is not a string', async () => {
+    const pipeline = new Pipeline();
+    pipeline.use(() => ({ ok: true }));
+    await assert.rejects(
+      () => pipeline.process({ type: 42 }, {}),
+      /Task must have a non-empty string "type" field/,
+    );
   });
 });

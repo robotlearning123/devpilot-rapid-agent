@@ -6,15 +6,20 @@
 
 import { createGeminiClient } from './cloud/gemini.js';
 import { fetchIssues, triageIssues } from './utils/gitlab.js';
+import { assertType, assertEnum, assertPayloadObject } from './utils/validate.js';
 
 export function echoHandler(task, _ctx) {
   if (task.type !== 'echo') return null;
+  assertType(task.payload, 'payload', 'string');
   return { output: task.payload, timestamp: Date.now() };
 }
 
 export function transformHandler(task, _ctx) {
   if (task.type !== 'transform') return null;
-  const { input, operation } = task.payload || {};
+  assertPayloadObject(task.payload, 'transform');
+  const { input, operation } = task.payload;
+  assertType(input, 'input', 'string');
+  assertEnum(operation, 'operation', ['upper', 'lower', 'reverse', 'length']);
   switch (operation) {
     case 'upper':
       return { output: String(input).toUpperCase() };
@@ -41,8 +46,9 @@ export function cloudStatusHandler(task, ctx) {
 
 export function batchHandler(task, _ctx) {
   if (task.type !== 'batch') return null;
-  const { items } = task.payload || {};
-  if (!Array.isArray(items)) throw new Error('batch payload.items must be an array');
+  assertPayloadObject(task.payload, 'batch');
+  const { items } = task.payload;
+  assertType(items, 'items', 'array');
   return {
     total: items.length,
     results: items.map((item, idx) => ({ index: idx, value: item })),
@@ -57,8 +63,15 @@ export function batchHandler(task, _ctx) {
  */
 export function geminiHandler(task, ctx) {
   if (task.type !== 'gemini') return null;
-  const { action: rawAction, prompt, messages, options } = task.payload || {};
+  assertPayloadObject(task.payload, 'gemini');
+  const { action: rawAction, prompt, messages, options } = task.payload;
   const action = rawAction || 'generate';
+  assertEnum(action, 'action', ['generate', 'review', 'chat']);
+  if (action === 'chat') {
+    assertType(messages, 'messages', 'array');
+  } else {
+    assertType(prompt, 'prompt', 'string');
+  }
   const client = createGeminiClient(ctx.config, ctx.deps);
 
   switch (action) {
@@ -73,7 +86,9 @@ export function geminiHandler(task, ctx) {
 
 export async function gitlabTriageHandler(task, ctx) {
   if (task.type !== 'gitlab-triage') return null;
-  const { operation } = task.payload || {};
+  assertPayloadObject(task.payload, 'gitlab-triage');
+  const { operation } = task.payload;
+  assertEnum(operation, 'operation', ['list', 'triage', 'classify']);
 
   switch (operation) {
     case 'list': {
