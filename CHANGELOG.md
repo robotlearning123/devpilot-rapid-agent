@@ -22,9 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Tests
 
-- 202 passing tests across 12 test files
+- 213 passing tests across 12 test files
 - GitLab client.js branch coverage improved from 55% to 90%+ (#17)
 - New `validate.test.js` with full coverage for payload validation module (#19)
+- Planner.js branch coverage improved from 70.73% to 90.24% (#21)
+- GitLab client.js function coverage improved to 100% with timeout/abort tests (#22)
 
 ## [0.1.0] - 2026-05-13
 
