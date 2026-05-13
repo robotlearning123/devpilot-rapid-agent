@@ -80,6 +80,72 @@ describe('createGitLabClient', () => {
     const client = createGitLabClient(config, fetch);
     await assert.rejects(() => client.listOpenMRs(), /401/);
   });
+
+  it('throws on getMRDiff API errors', async () => {
+    const fetch = async () => ({ ok: false, status: 404, statusText: 'Not Found' });
+    const client = createGitLabClient(config, fetch);
+    await assert.rejects(() => client.getMRDiff(99), /404/);
+  });
+
+  it('throws on postComment API errors', async () => {
+    const fetch = async () => ({ ok: false, status: 403, statusText: 'Forbidden' });
+    const client = createGitLabClient(config, fetch);
+    await assert.rejects(() => client.postComment(1, 'comment'), /403/);
+  });
+
+  it('handles null changes array in getMRDiff', async () => {
+    const fetch = arrayMockFetch([{ data: {} }]);
+    const client = createGitLabClient(config, fetch);
+    const diff = await client.getMRDiff(1);
+    assert.deepEqual(diff, []);
+  });
+
+  it('falls back to new_path when old_path is missing', async () => {
+    const fetch = arrayMockFetch([{
+      data: {
+        changes: [{ new_path: 'src/new.js', diff: '@@ -1 +1 @@\n-old\n+new\n' }],
+      },
+    }]);
+    const client = createGitLabClient(config, fetch);
+    const diff = await client.getMRDiff(1);
+    assert.equal(diff[0].file, 'src/new.js');
+  });
+
+  it('falls back to unknown when both old_path and new_path are missing', async () => {
+    const fetch = arrayMockFetch([{
+      data: {
+        changes: [{ diff: '@@ -1 +1 @@\n-old\n+new\n' }],
+      },
+    }]);
+    const client = createGitLabClient(config, fetch);
+    const diff = await client.getMRDiff(1);
+    assert.equal(diff[0].file, 'unknown');
+  });
+
+  it('handles null diff string in change', async () => {
+    const fetch = arrayMockFetch([{
+      data: {
+        changes: [{ old_path: 'src/app.js' }],
+      },
+    }]);
+    const client = createGitLabClient(config, fetch);
+    const diff = await client.getMRDiff(1);
+    assert.equal(diff[0].hunks.length, 0);
+  });
+
+  it('parses hunks with missing line counts (defaults to 1)', async () => {
+    const fetch = arrayMockFetch([{
+      data: {
+        changes: [{ old_path: 'a.txt', diff: '@@ -5 +10 @@\n+line\n' }],
+      },
+    }]);
+    const client = createGitLabClient(config, fetch);
+    const diff = await client.getMRDiff(1);
+    assert.equal(diff[0].hunks[0].oldStart, 5);
+    assert.equal(diff[0].hunks[0].oldLines, 1);
+    assert.equal(diff[0].hunks[0].newStart, 10);
+    assert.equal(diff[0].hunks[0].newLines, 1);
+  });
 });
 
 // --- fetchIssues (issue triage) ---
