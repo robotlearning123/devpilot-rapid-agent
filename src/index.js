@@ -14,6 +14,7 @@ import {
   cloudStatusHandler,
   batchHandler,
   geminiHandler,
+  gitlabTriageHandler,
   BUILTIN_HANDLERS,
 } from './handlers.js';
 
@@ -34,6 +35,7 @@ export {
   cloudStatusHandler,
   batchHandler,
   geminiHandler,
+  gitlabTriageHandler,
   BUILTIN_HANDLERS,
 };
 

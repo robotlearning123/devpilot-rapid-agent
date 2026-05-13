@@ -5,6 +5,7 @@
  */
 
 import { createGeminiClient } from './cloud/gemini.js';
+import { fetchIssues, triageIssues } from './utils/gitlab.js';
 
 export function echoHandler(task, _ctx) {
   if (task.type !== 'echo') return null;
@@ -70,10 +71,37 @@ export function geminiHandler(task, ctx) {
   }
 }
 
+export async function gitlabTriageHandler(task, ctx) {
+  if (task.type !== 'gitlab-triage') return null;
+  const { operation } = task.payload || {};
+
+  switch (operation) {
+    case 'list': {
+      const issues = await fetchIssues(ctx.config, task.payload?.params, ctx.fetch);
+      return { operation: 'list', total: issues.length, issues };
+    }
+    case 'triage': {
+      const issues = task.payload?.issues
+        ? task.payload.issues
+        : await fetchIssues(ctx.config, task.payload?.params, ctx.fetch);
+      return triageIssues(issues);
+    }
+    case 'classify': {
+      const { issue } = task.payload || {};
+      if (!issue) throw new Error('gitlab-triage classify requires payload.issue');
+      const { classifyIssue } = await import('./utils/gitlab.js');
+      return { operation: 'classify', ...classifyIssue(issue) };
+    }
+    default:
+      throw new Error(`Unknown gitlab-triage operation: ${operation}`);
+  }
+}
+
 export const BUILTIN_HANDLERS = [
   echoHandler,
   transformHandler,
   cloudStatusHandler,
   batchHandler,
   geminiHandler,
+  gitlabTriageHandler,
 ];
