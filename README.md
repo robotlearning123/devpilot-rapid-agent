@@ -131,10 +131,49 @@ The agent plans the required steps, shows you the plan, and executes each step u
 - Pipeline control (trigger, monitor, retry)
 - Board management (create, update, move cards)
 
+## Devpost Submission
+
+> Built for the [Google Cloud Rapid Agent Hackathon](https://rapid-agent.devpost.com/).
+
+### Inspiration
+
+Every developer dreads code review — it's slow, inconsistent, and security issues slip through. DevPilot automates the tedious parts so humans focus on architecture decisions, not catching hardcoded credentials.
+
+### What It Does
+
+DevPilot is an AI-powered DevOps agent that automates GitLab merge request code review. It fetches diffs, runs multi-category AI analysis (security, correctness, performance, style), and posts structured findings as MR comments. Includes a general-purpose middleware pipeline for extensible task handling.
+
+### How We Built It
+
+- **Dual-path architecture**: General task pipeline (Agent + middleware handlers) + dedicated MR review loop (Planner → Executor → GitLab postback)
+- **Vertex AI Gemini 1.5 Flash** for code reasoning with exponential-backoff retry
+- **Heuristic regex fallback** when cloud is unavailable — zero-credential operation out of the box
+- **Dependency injection** for all external services — fully testable without real API keys
+- Node.js ESM, vitest, Cloud Run deployment
+
+### Challenges We Ran Into
+
+- API resilience under load → configurable retry with heuristic fallback
+- GitLab diff format variance → robust hunk parser with sensible defaults
+- Testing without credentials → injectable `fetch` and `deps` across all modules
+- Plan prioritization → security-first sorting before execution
+
+### What's Next
+
+- GitLab MCP server for richer tool use
+- Inline review comments on specific diff lines
+- Review learning from developer feedback
+- Multi-repo dashboards for code quality trends
+- GitHub pull request support
+
+### Built With
+
+`gemini` `vertex-ai` `google-cloud-run` `google-secret-manager` `gitlab-api` `node.js` `javascript` `vitest`
+
 ## Testing
 
 ```bash
-npm test
+npm test    # 134 tests across 11 files
 ```
 
 ## License
