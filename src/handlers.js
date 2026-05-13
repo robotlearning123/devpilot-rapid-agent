@@ -29,8 +29,6 @@ export function transformHandler(task, _ctx) {
       return { output: String(input).split('').reverse().join('') };
     case 'length':
       return { output: String(input).length };
-    default:
-      throw new Error(`Unknown transform operation: ${operation}`);
   }
 }
 
@@ -78,7 +76,7 @@ export function geminiHandler(task, ctx) {
     case 'review':
       return client.review(prompt, options).then((output) => ({ output, action }));
     case 'chat':
-      return client.chat(messages || [], options).then((output) => ({ output, action }));
+      return client.chat(messages, options).then((output) => ({ output, action }));
     default:
       return client.generate(prompt, options).then((output) => ({ output, action }));
   }
@@ -102,13 +100,11 @@ export async function gitlabTriageHandler(task, ctx) {
       return triageIssues(issues);
     }
     case 'classify': {
-      const { issue } = task.payload || {};
+      const { issue } = task.payload;
       if (!issue) throw new Error('gitlab-triage classify requires payload.issue');
       const { classifyIssue } = await import('./utils/gitlab.js');
       return { operation: 'classify', ...classifyIssue(issue) };
     }
-    default:
-      throw new Error(`Unknown gitlab-triage operation: ${operation}`);
   }
 }
 
