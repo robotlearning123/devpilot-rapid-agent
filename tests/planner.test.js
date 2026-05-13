@@ -75,8 +75,7 @@ describe('createPlan', () => {
     assert.equal(plan.length, 1);
     assert.equal(plan[0].category, 'correctness');
     assert.equal(plan[0].lineStart, 1);
-    // When hunks is undefined, lineEnd becomes NaN (?? 1 does not catch NaN)
-    assert.ok(Number.isNaN(plan[0].lineEnd));
+    assert.equal(plan[0].lineEnd, 1);
   });
 
   it('handles hunks with missing newLines', () => {
@@ -89,6 +88,21 @@ describe('createPlan', () => {
     const plan = createPlan(diff);
     assert.equal(plan.length, 1);
     assert.equal(plan[0].category, 'correctness');
+  });
+
+  it('uses default line bounds for large diffs with partial hunk metadata', () => {
+    const diff = [
+      {
+        file: 'src/generated.js',
+        hunks: [{ newLines: 75 }],
+      },
+    ];
+    const plan = createPlan(diff);
+    const performanceTask = plan.find((step) => step.category === 'performance');
+    assert.equal(plan[0].lineStart, 1);
+    assert.equal(plan[0].lineEnd, 1);
+    assert.equal(performanceTask.lineStart, 1);
+    assert.equal(performanceTask.lineEnd, 1);
   });
 
   it('handles empty diff array', () => {

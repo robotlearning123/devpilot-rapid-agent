@@ -38,6 +38,33 @@ describe('runAgent', () => {
     assert.equal(result.results.failed, 0);
   });
 
+  it('uses createGitLabClient fallback when deps.gitlab is omitted', async () => {
+    const mockFetch = async (url) => ({
+      ok: true,
+      json: async () => ({
+        changes: [
+          { old_path: 'src/app.js', new_path: 'src/app.js', diff: '@@ -1,3 +1,4 @@\n-old\n+new\n+extra\n' },
+        ],
+      }),
+    });
+    const reviewer = {
+      review: async () => 'No issues found in heuristic review',
+    };
+
+    const result = await runAgent(
+      {
+        GITLAB_TOKEN: 'tok',
+        GITLAB_PROJECT_ID: '1',
+        GOOGLE_CLOUD_PROJECT: 'proj',
+        MR_IID: 42,
+        DRY_RUN: true,
+      },
+      { fetch: mockFetch, reviewer },
+    );
+
+    assert.equal(result.reviewed, 1);
+  });
+
   it('posts comment when findings exist (not dry-run)', async () => {
     let commentPosted = false;
     const gitlab = {

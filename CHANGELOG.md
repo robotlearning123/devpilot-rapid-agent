@@ -5,6 +5,20 @@ All notable changes to DevPilot Rapid Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-05-13
+
+### Changed
+
+- Removed unreachable handler branches, achieving 100% line coverage across all modules (#25)
+
+### Tests
+
+- 216 passing tests across 12 test files
+- GitLab client.js branch coverage improved from 93.5% to 100% (#23)
+- Executor branch coverage improved from 91.7% to 100% (#23)
+- Planner and review orchestrator branch coverage improved to 100%
+- Overall coverage: 99.73% statements (374/375), 99.67% branches (309/310), 98.57% functions (69/70), 100% lines (338/338)
+
 ## [0.2.0] - 2026-05-13
 
 ### Added

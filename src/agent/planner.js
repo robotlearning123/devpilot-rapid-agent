@@ -7,6 +7,11 @@
 
 const REVIEW_CATEGORIES = ['security', 'performance', 'correctness', 'style', 'maintainability'];
 
+function hunkLineEnd(hunks) {
+  const lastHunk = hunks?.at(-1);
+  return (lastHunk?.oldStart ?? 1) + (lastHunk?.oldLines ?? 0);
+}
+
 /**
  * Create a review plan from a diff and optional context.
  * Returns an array of { id, category, file, lineStart, lineEnd, prompt } tasks.
@@ -30,7 +35,7 @@ export function createPlan(diff, options = {}) {
       category: 'correctness',
       file: entry.file,
       lineStart: entry.hunks?.[0]?.oldStart ?? 1,
-      lineEnd: entry.hunks?.at(-1)?.oldStart + (entry.hunks?.at(-1)?.oldLines ?? 0) ?? 1,
+      lineEnd: hunkLineEnd(entry.hunks),
       prompt: `Review ${entry.file} for correctness issues`,
     });
 
@@ -42,7 +47,7 @@ export function createPlan(diff, options = {}) {
         category: 'performance',
         file: entry.file,
         lineStart: entry.hunks?.[0]?.oldStart ?? 1,
-        lineEnd: entry.hunks?.at(-1)?.oldStart + (entry.hunks?.at(-1)?.oldLines ?? 0) ?? 1,
+        lineEnd: hunkLineEnd(entry.hunks),
         prompt: `Analyze ${entry.file} for performance concerns (${totalLines} lines changed)`,
       });
     }
