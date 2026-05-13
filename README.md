@@ -171,7 +171,7 @@ DevPilot is an AI-powered DevOps agent that automates GitLab merge request code 
 ## Testing
 
 ```bash
-npm test    # 194 tests across 12 files
+npm test    # 213 tests across 12 files
 ```
 
 ## License
