@@ -19,6 +19,12 @@ export class Pipeline {
   }
 
   async process(task, ctx) {
+    if (!task || typeof task !== 'object') {
+      throw new Error('Task must be a non-null object');
+    }
+    if (typeof task.type !== 'string' || task.type.length === 0) {
+      throw new Error('Task must have a non-empty string "type" field');
+    }
     for (const handler of this._handlers) {
       const result = await handler(task, ctx);
       if (result !== null && result !== undefined) {
