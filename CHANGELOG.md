@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built-in handlers: echo, transform, cloud-status, batch
 - GitLab MR review agent with planner/executor pattern (#6)
 - GitLab client for MR diff fetching and comment posting
+- GitLab MCP handler for issue triage with classification and priority detection (#8)
+- Issue triage: `fetchIssues`, `classifyIssue`, `triageIssues` in `src/utils/gitlab.js` (#8)
+- GitLab API fetch timeout (10s AbortController) and URL validation (#8)
 - Vertex AI integration for AI-powered code review
 - Heuristic fallback review (no API key required)
 - Cloud Run deployment configuration (Dockerfile, cloudbuild.yaml) (#9)
@@ -23,14 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gemini handler wired into agent pipeline (generate/review/chat actions)
 - `.env.example` with documented configuration variables (#7)
 - `.gitignore` for standard Node.js exclusions (#5)
+- Devpost submission writeup with all 6 required fields
+- Demo walkthrough in `docs/demo.md` (7-step GitLab workflow demo)
 
 ### Changed
 
 - Switched test runner from vitest to node:test, then back to vitest (#3)
 - Bumped Node.js minimum to >=20.12.0 for vitest 4.x compatibility
 - Bumped cloudbuild.yaml from node:18 to node:20
+- Gemini `generate()` now passes `systemInstruction` in request body (was silently dropped)
+- API key moved from URL query param to `x-goog-api-key` header to prevent credential leakage
 
 ### Tests
 
-- 100 passing tests across 10 test files
-- Full coverage for config, handlers, pipeline, planner, executor, GitLab client, Vertex AI, and Gemini client
+- 134 passing tests across 11 test files
+- Full coverage for config, handlers, pipeline, planner, executor, GitLab client, GitLab MCP handler, Vertex AI, Gemini client, and integration
