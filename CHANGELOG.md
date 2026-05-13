@@ -5,6 +5,27 @@ All notable changes to DevPilot Rapid Agent will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-05-13
+
+### Added
+
+- All 6 Devpost submission fields in README (Built With, What It Does, How We Built It, Challenges, Accomplishments, What We Learned) (#14)
+- Payload validation module with type checking, range constraints, and custom validators (#19)
+- Payload validation handler wired into agent pipeline with comprehensive error reporting (#19)
+- Vitest coverage configuration with per-file and global branch/line/function thresholds (#18)
+
+### Changed
+
+- Architecture diagram updated to reflect actual implementation structure (#16)
+- Node.js minimum version fixed to 20+ across README and documentation (#16)
+- CHANGELOG date corrected from 2025 to 2026 (#15)
+
+### Tests
+
+- 202 passing tests across 12 test files
+- GitLab client.js branch coverage improved from 55% to 90%+ (#17)
+- New `validate.test.js` with full coverage for payload validation module (#19)
+
 ## [0.1.0] - 2026-05-13
 
 ### Added
