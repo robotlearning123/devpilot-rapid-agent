@@ -96,7 +96,7 @@ describe('createGeminiClient — heuristic fallback', () => {
 // ---------------------------------------------------------------------------
 
 describe('createGeminiClient — API key auth', () => {
-  it('generate() calls Google AI endpoint with API key', async () => {
+  it('generate() calls Google AI endpoint with API key in header', async () => {
     const fetch = mockFetchOK('hello');
     const client = createGeminiClient(
       { GEMINI_API_KEY: 'test-key' },
@@ -105,10 +105,11 @@ describe('createGeminiClient — API key auth', () => {
     const result = await client.generate('hi');
     assert.equal(result, 'hello');
     assert.ok(mockFetchOK.lastUrl.includes('generativelanguage.googleapis.com'));
-    assert.ok(mockFetchOK.lastUrl.includes('key=test-key'));
+    assert.ok(!mockFetchOK.lastUrl.includes('key='), 'API key must not appear in URL');
+    assert.equal(mockFetchOK.lastOpts.headers['x-goog-api-key'], 'test-key');
   });
 
-  it('generate() sends systemInstruction in generation config', async () => {
+  it('generate() sends systemInstruction in request body', async () => {
     const fetch = mockFetchOK('sys');
     const client = createGeminiClient(
       { GEMINI_API_KEY: 'k' },
@@ -118,6 +119,7 @@ describe('createGeminiClient — API key auth', () => {
     const body = JSON.parse(mockFetchOK.lastOpts.body);
     assert.ok(Array.isArray(body.contents));
     assert.equal(body.contents[0].role, 'user');
+    assert.deepEqual(body.systemInstruction, { parts: [{ text: 'be helpful' }] });
   });
 
   it('generate() respects temperature and maxOutputTokens options', async () => {

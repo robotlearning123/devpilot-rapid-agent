@@ -47,13 +47,16 @@ export function createGeminiClient(config = {}, deps = {}) {
 
     const { systemInstruction, temperature = 0.2, maxOutputTokens = 1024 } = options;
     const { url, headers } = buildRequest(model, apiKey, project, location);
-    const contents = buildContents(prompt, systemInstruction);
+    const contents = buildContents(prompt);
 
     const res = await fetchFn(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         contents,
+        systemInstruction: systemInstruction
+          ? { parts: [{ text: systemInstruction }] }
+          : undefined,
         generationConfig: { temperature, maxOutputTokens },
       }),
     });
@@ -135,8 +138,8 @@ export function createGeminiClient(config = {}, deps = {}) {
 function buildRequest(model, apiKey, project, location) {
   if (apiKey) {
     return {
-      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      headers: { 'Content-Type': 'application/json' },
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
     };
   }
   return {
@@ -148,10 +151,8 @@ function buildRequest(model, apiKey, project, location) {
 /**
  * Build contents array for generateContent API.
  */
-function buildContents(prompt, systemInstruction) {
-  const contents = [{ role: 'user', parts: [{ text: prompt }] }];
-  // systemInstruction is passed at the top level, not in contents
-  return contents;
+function buildContents(prompt) {
+  return [{ role: 'user', parts: [{ text: prompt }] }];
 }
 
 /**
