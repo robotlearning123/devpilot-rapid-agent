@@ -1,6 +1,6 @@
 # DevPilot Demo Script
 
-A step-by-step walkthrough demonstrating DevPilot — an AI DevOps agent powered by Gemini and Google Cloud Agent Builder with GitLab MCP integration.
+A step-by-step walkthrough demonstrating DevPilot — an AI DevOps agent powered by Gemini 1.5 Flash and Google Cloud with GitLab MCP integration.
 
 ## Prerequisites
 
@@ -191,7 +191,7 @@ Expected: service is active, agent responds to requests, logs show tool invocati
 | **Multi-Step Mission** | Triage analyzes 8 issues in sequence; review reads diff then posts comments |
 | **Partner Power** | GitLab MCP server provides all tool capabilities |
 | **Gemini Reasoning** | Code review, issue classification, release note summarization |
-| **Google Cloud** | Agent Builder orchestration, Cloud Run hosting, Cloud Logging |
+| **Google Cloud** | Cloud Run hosting, Vertex AI inference, Cloud Logging |
 
 ## Troubleshooting
 
