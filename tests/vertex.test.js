@@ -68,4 +68,30 @@ describe('createVertexReviewer', () => {
     const result = await reviewer.review('Review code with eval() call');
     assert.ok(result.includes('eval()'));
   });
+
+  it('returns fallback when predictions array is empty', async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      json: async () => ({ predictions: [] }),
+    });
+    const reviewer = createVertexReviewer(
+      { GOOGLE_CLOUD_PROJECT: 'test-project', GOOGLE_CLOUD_LOCATION: 'us-central1' },
+      { fetch: mockFetch },
+    );
+    const result = await reviewer.review('Review this code');
+    assert.equal(result, 'No review generated');
+  });
+
+  it('returns fallback when predictions is null', async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      json: async () => ({ predictions: null }),
+    });
+    const reviewer = createVertexReviewer(
+      { GOOGLE_CLOUD_PROJECT: 'test-project', GOOGLE_CLOUD_LOCATION: 'us-central1' },
+      { fetch: mockFetch },
+    );
+    const result = await reviewer.review('Review this code');
+    assert.equal(result, 'No review generated');
+  });
 });

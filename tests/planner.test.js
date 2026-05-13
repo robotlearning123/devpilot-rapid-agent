@@ -118,6 +118,28 @@ describe('createPlan', () => {
     const plan = createPlan(bigDiff, { maxSteps: 3 });
     assert.equal(plan.length, 3);
   });
+
+  it('skips performance review when maxSteps already reached by correctness task', () => {
+    const diff = [
+      {
+        file: 'big.js',
+        hunks: [{ oldStart: 1, oldLines: 25, newStart: 1, newLines: 60 }],
+      },
+    ];
+    const plan = createPlan(diff, { maxSteps: 1 });
+    assert.equal(plan.length, 1);
+    assert.equal(plan[0].category, 'correctness');
+    const perf = plan.filter((s) => s.category === 'performance');
+    assert.equal(perf.length, 0);
+  });
+
+  it('handles entry with empty hunks array for line bounds', () => {
+    const diff = [{ file: 'empty-hunks.js', hunks: [] }];
+    const plan = createPlan(diff);
+    assert.equal(plan.length, 1);
+    assert.equal(plan[0].lineStart, 1);
+    assert.equal(plan[0].lineEnd, 1);
+  });
 });
 
 describe('validatePlan', () => {
