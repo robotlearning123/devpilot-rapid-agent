@@ -31,6 +31,14 @@ describe('executeStep', () => {
     assert.equal(result.ok, false);
     assert.ok(result.result.includes('persistent'));
   });
+
+  it('returns "unknown" when error has no message', async () => {
+    const reviewer = async () => { throw 'string error'; };
+    const step = { id: 4, category: 'security', file: 'd.js', prompt: 'review' };
+    const result = await executeStep(step, reviewer, { retryAttempts: 1, retryDelayMs: 10 });
+    assert.equal(result.ok, false);
+    assert.ok(result.result.includes('unknown'));
+  });
 });
 
 describe('executePlan', () => {

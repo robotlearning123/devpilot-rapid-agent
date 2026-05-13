@@ -272,6 +272,23 @@ describe('classifyIssue', () => {
     const result = classifyIssue({ title: 'Error: page not loading', labels: [] });
     assert.equal(result.category, 'bug');
   });
+
+  it('handles issue with no labels property (fallback to empty array)', () => {
+    const result = classifyIssue({ title: 'Some issue' });
+    assert.equal(result.category, 'needs-triage');
+    assert.equal(result.priority, 'medium');
+  });
+
+  it('handles issue with no title property (fallback to empty string)', () => {
+    const result = classifyIssue({ labels: ['bug'] });
+    assert.equal(result.category, 'bug');
+  });
+
+  it('handles issue with neither labels nor title', () => {
+    const result = classifyIssue({});
+    assert.equal(result.category, 'needs-triage');
+    assert.equal(result.confidence, 0.5);
+  });
 });
 
 // --- triageIssues ---
@@ -301,6 +318,21 @@ describe('triageIssues', () => {
     assert.equal(report.total, 0);
     assert.deepEqual(report.categories, {});
     assert.deepEqual(report.items, []);
+  });
+
+  it('falls back to id when iid is missing', () => {
+    const report = triageIssues([
+      { id: 99, title: 'Bug report', labels: ['bug'], state: 'opened' },
+    ]);
+    assert.equal(report.items[0].id, 99);
+  });
+
+  it('handles issue with no labels property', () => {
+    const report = triageIssues([
+      { iid: 5, title: 'No labels here', state: 'opened' },
+    ]);
+    assert.equal(report.items[0].labels.length, 0);
+    assert.equal(report.items[0].category, 'needs-triage');
   });
 });
 
