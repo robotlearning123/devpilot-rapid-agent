@@ -13,6 +13,7 @@ import {
   transformHandler,
   cloudStatusHandler,
   batchHandler,
+  geminiHandler,
   BUILTIN_HANDLERS,
 } from './handlers.js';
 
@@ -21,6 +22,7 @@ import { createPlan, validatePlan, prioritizePlan } from './agent/planner.js';
 import { executeStep, executePlan, summarizeResults } from './agent/executor.js';
 import { createGitLabClient } from './gitlab/client.js';
 import { createVertexReviewer, heuristicReview } from './cloud/vertex.js';
+import { createGeminiClient } from './cloud/gemini.js';
 
 export {
   Agent,
@@ -31,6 +33,7 @@ export {
   transformHandler,
   cloudStatusHandler,
   batchHandler,
+  geminiHandler,
   BUILTIN_HANDLERS,
 };
 
@@ -44,6 +47,7 @@ export {
   createGitLabClient,
   createVertexReviewer,
   heuristicReview,
+  createGeminiClient,
 };
 
 export { runAgent } from './review.js';

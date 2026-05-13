@@ -1,6 +1,6 @@
 import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
-import { echoHandler, transformHandler, cloudStatusHandler, batchHandler } from '../src/handlers.js';
+import { echoHandler, transformHandler, cloudStatusHandler, batchHandler, geminiHandler } from '../src/handlers.js';
 
 describe('echoHandler', () => {
   it('returns payload with timestamp for echo tasks', () => {
@@ -77,5 +77,63 @@ describe('batchHandler', () => {
 
   it('returns null for non-batch tasks', () => {
     assert.equal(batchHandler({ type: 'echo' }, {}), null);
+  });
+});
+
+describe('geminiHandler', () => {
+  it('returns null for non-gemini tasks', () => {
+    assert.equal(geminiHandler({ type: 'echo' }, { config: {} }), null);
+  });
+
+  it('falls back to heuristic generate when no credentials', async () => {
+    const result = await geminiHandler(
+      { type: 'gemini', payload: { action: 'generate', prompt: 'Review code with eval() usage' } },
+      { config: {} },
+    );
+    assert.ok(result.output.includes('eval()'));
+    assert.equal(result.action, 'generate');
+  });
+
+  it('falls back to heuristic review when no credentials', async () => {
+    const result = await geminiHandler(
+      { type: 'gemini', payload: { action: 'review', prompt: 'Code with password = "x"' } },
+      { config: {} },
+    );
+    assert.ok(result.output.includes('credential'));
+    assert.equal(result.action, 'review');
+  });
+
+  it('uses mock fetch when credentials provided via deps', async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      json: async () => ({ candidates: [{ content: { parts: [{ text: 'AI review' }] } }] }),
+    });
+    const result = await geminiHandler(
+      { type: 'gemini', payload: { action: 'generate', prompt: 'test' } },
+      { config: { GEMINI_API_KEY: 'k' }, deps: { fetch: mockFetch } },
+    );
+    assert.equal(result.output, 'AI review');
+  });
+
+  it('routes chat action with messages', async () => {
+    const mockFetch = async () => ({
+      ok: true,
+      json: async () => ({ candidates: [{ content: { parts: [{ text: 'chat reply' }] } }] }),
+    });
+    const result = await geminiHandler(
+      { type: 'gemini', payload: { action: 'chat', messages: [{ role: 'user', text: 'hi' }] } },
+      { config: { GEMINI_API_KEY: 'k' }, deps: { fetch: mockFetch } },
+    );
+    assert.equal(result.output, 'chat reply');
+    assert.equal(result.action, 'chat');
+  });
+
+  it('defaults to generate when action is omitted', async () => {
+    const result = await geminiHandler(
+      { type: 'gemini', payload: { prompt: 'eval(input)' } },
+      { config: {} },
+    );
+    assert.equal(result.action, 'generate');
+    assert.ok(result.output.includes('eval()'));
   });
 });

@@ -4,6 +4,8 @@
  * Return null to pass to the next handler; return a value to complete.
  */
 
+import { createGeminiClient } from './cloud/gemini.js';
+
 export function echoHandler(task, _ctx) {
   if (task.type !== 'echo') return null;
   return { output: task.payload, timestamp: Date.now() };
@@ -46,4 +48,32 @@ export function batchHandler(task, _ctx) {
   };
 }
 
-export const BUILTIN_HANDLERS = [echoHandler, transformHandler, cloudStatusHandler, batchHandler];
+/**
+ * Gemini handler — routes AI tasks to the Gemini client.
+ *
+ * Task shape: { type: 'gemini', payload: { action, prompt, messages, options } }
+ * Actions: 'generate' | 'review' | 'chat'
+ */
+export function geminiHandler(task, ctx) {
+  if (task.type !== 'gemini') return null;
+  const { action: rawAction, prompt, messages, options } = task.payload || {};
+  const action = rawAction || 'generate';
+  const client = createGeminiClient(ctx.config, ctx.deps);
+
+  switch (action) {
+    case 'review':
+      return client.review(prompt, options).then((output) => ({ output, action }));
+    case 'chat':
+      return client.chat(messages || [], options).then((output) => ({ output, action }));
+    default:
+      return client.generate(prompt, options).then((output) => ({ output, action }));
+  }
+}
+
+export const BUILTIN_HANDLERS = [
+  echoHandler,
+  transformHandler,
+  cloudStatusHandler,
+  batchHandler,
+  geminiHandler,
+];
