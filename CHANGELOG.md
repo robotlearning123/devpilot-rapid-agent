@@ -13,10 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Tests
 
-- 214 passing tests across 12 test files
+- 216 passing tests across 12 test files
 - GitLab client.js branch coverage improved from 93.5% to 100% (#23)
 - Executor branch coverage improved from 91.7% to 100% (#23)
-- Overall coverage: 99.73% statements (372/373), 98.4% branches (309/314), 98.55% functions (68/69), 100% lines (336/336)
+- Planner and review orchestrator branch coverage improved to 100%
+- Overall coverage: 99.73% statements (374/375), 99.67% branches (309/310), 98.57% functions (69/70), 100% lines (338/338)
 
 ## [0.2.0] - 2026-05-13
 

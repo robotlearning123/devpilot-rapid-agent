@@ -193,6 +193,40 @@ describe('runAgent integration: config → fetch → plan → execute → post',
     );
   });
 
+  it('uses the default GitLab client when none is injected', async () => {
+    const reviewer = mockReviewer(['Default client finding']);
+    const fetch = vi.fn(async (url, opts = {}) => {
+      if (url.endsWith('/merge_requests/7/changes')) {
+        assert.equal(opts.headers['PRIVATE-TOKEN'], 'test-token');
+        return {
+          ok: true,
+          json: async () => ({
+            changes: [
+              {
+                old_path: 'src/from-gitlab.js',
+                diff: '@@ -3,2 +3,3 @@\n-old\n+new\n',
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.endsWith('/merge_requests/7/notes')) {
+        assert.equal(opts.method, 'POST');
+        assert.ok(JSON.parse(opts.body).body.includes('Default client finding'));
+        return { ok: true, json: async () => ({ id: 123 }) };
+      }
+
+      throw new Error(`Unexpected URL: ${url}`);
+    });
+
+    const result = await runAgent(makeConfig(), { fetch, reviewer });
+
+    assert.equal(result.reviewed, 1);
+    assert.equal(fetch.mock.calls.length, 2);
+    assert.ok(reviewer.review.mock.calls[0][0].includes('src/from-gitlab.js'));
+  });
+
   it('uses heuristic fallback when cloud reviewer fails', async () => {
     const diff = mockDiff([
       { file: 'src/eval-code.js', hunks: [{ oldStart: 1, oldLines: 5 }] },
